@@ -30,7 +30,7 @@ if "df" not in st.session_state:
 
 # Login screen
 def login():
-    st.title("🔐 Hostel Manager Login")
+    st.title("Bot")
     username = st.text_input("Username")
     password = st.text_input("Password", type="password")
 
