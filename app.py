@@ -49,7 +49,7 @@ def logout():
 
 # Main app interface
 def hostel_manager_app():
-    st.title("🏨 Hostel Manager App")
+    st.title("Bot")
     st.sidebar.success("Logged in")
     st.sidebar.button("Logout", on_click=logout)
 
