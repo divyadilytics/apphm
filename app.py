@@ -8,7 +8,7 @@ EXCEL_FILE = "hostel_data.xlsx"
 # Dummy login credentials
 USERS = {
     "admin": "1234",
-    "manager": "abcd"
+    "password ": "abcd"
 }
 
 # Load existing data or create empty DataFrame
