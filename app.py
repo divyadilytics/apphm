@@ -3,12 +3,7 @@ import pandas as pd
 import os
 
 EXCEL_FILE = "hostel_data.xlsx"
-
-# Dummy users
-USERS = {
-    "admin": "1234",
-    "manager": "abcd"
-}
+USERS = {"admin": "1234", "manager": "abcd"}
 
 def load_data():
     if os.path.exists(EXCEL_FILE):
@@ -25,95 +20,103 @@ if "logged_in" not in st.session_state:
 if "df" not in st.session_state:
     st.session_state.df = load_data()
 
-# Inject custom CSS for top-right menu
+# Add custom top-right menu
 st.markdown("""
     <style>
-    .dropdown {
+    .menu-container {
         position: fixed;
         top: 12px;
         right: 12px;
-        display: inline-block;
+        z-index: 9999;
     }
-    .dropbtn {
-        background-color: #f1f1f1;
-        color: black;
-        padding: 6px 12px;
-        font-size: 18px;
+
+    .menu-button {
+        font-size: 24px;
+        background: #f0f0f0;
         border: none;
-        border-radius: 8px;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
         cursor: pointer;
     }
-    .dropdown-content {
+
+    .dropdown {
         display: none;
         position: absolute;
         right: 0;
+        top: 45px;
         background-color: white;
-        min-width: 160px;
-        box-shadow: 0px 2px 8px rgba(0,0,0,0.2);
+        min-width: 150px;
+        border: 1px solid #ccc;
         border-radius: 8px;
-        z-index: 1;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
-    .dropdown-content button {
+
+    .dropdown button {
+        background: none;
+        border: none;
         color: black;
         padding: 10px 16px;
-        text-align: left;
-        border: none;
-        background: none;
         width: 100%;
+        text-align: left;
         cursor: pointer;
+        font-size: 14px;
     }
-    .dropdown-content button:hover {
-        background-color: #f5f5f5;
+
+    .dropdown button:hover {
+        background-color: #f1f1f1;
     }
-    .dropdown:hover .dropdown-content {
+
+    .menu-container:hover .dropdown {
         display: block;
     }
     </style>
-""", unsafe_allow_html=True)
 
-# Menu HTML
-st.markdown("""
-    <div class="dropdown">
-      <button class="dropbtn">⋮</button>
-      <div class="dropdown-content">
-        <form action="#" method="post">
-            <button onclick="window.location.href='#settings'">Settings</button>
-            <button onclick="window.location.href='#help'">Help</button>
-        </form>
-      </div>
+    <div class="menu-container">
+        <button class="menu-button">⋮</button>
+        <div class="dropdown">
+            <form action="" method="get">
+                <button name="section" value="settings">⚙️ Settings</button>
+                <button name="section" value="help">❓ Help</button>
+            </form>
+        </div>
     </div>
 """, unsafe_allow_html=True)
 
-# Handle anchor scroll simulation
-if st.query_params.get("anchor") == "settings" or st.query_params.get("anchor") is None:
-    st.subheader("⚙️ Settings")
+# Get current section
+section = st.query_params.get("section", "settings")
 
+# Settings/Login Page
+if section == "settings":
+    st.subheader("⚙️ Settings")
     if st.session_state.logged_in:
         st.success("✅ Logged in!")
         if st.button("Logout"):
             st.session_state.logged_in = False
             st.rerun()
     else:
-        username = st.text_input("Username", key="login_user")
-        password = st.text_input("Password", type="password", key="login_pass")
+        username = st.text_input("Username")
+        password = st.text_input("Password", type="password")
         if st.button("Login"):
             if username in USERS and USERS[username] == password:
                 st.session_state.logged_in = True
                 st.success("✅ Login successful!")
                 st.rerun()
             else:
-                st.error("❌ Invalid credentials")
+                st.error("❌ Invalid username or password")
 
-elif st.query_params.get("anchor") == "help":
+# Help Page
+elif section == "help":
     st.subheader("❓ Help")
     st.markdown("""
-        - **Add Hostel**: Register your building  
-        - **Add Room**: Assign room numbers  
-        - **Add Bed**: Add people in rooms  
-        - **View All**: See all hostel data  
+    **Hostel Manager Instructions:**
+    - Add Hostels to register buildings
+    - Add Rooms under a Hostel
+    - Add Bed to assign occupants
+    - View All shows the full data
     """)
 
-# Only show app when logged in
+# Main App Only If Logged In
 if st.session_state.logged_in:
     menu = st.sidebar.radio("Menu", ["Add Hostel", "Add Room", "Add Bed", "View All"])
     st.markdown("<h2 style='margin-top: -20px;'>🏨 Hostel Manager</h2>", unsafe_allow_html=True)
