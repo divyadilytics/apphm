@@ -2,26 +2,27 @@ import streamlit as st
 import pandas as pd
 import os
 
-# Excel file to store data
+# Excel file to store hostel data
 EXCEL_FILE = "hostel_data.xlsx"
 
-# Dummy login credentials
+# Dummy login credentials (username: password)
 USERS = {
     "admin": "1234",
-    "password ": "abcd"
+    "manager": "abcd"
 }
 
-# Load existing data or create empty DataFrame
+# Load existing data or create a new empty DataFrame
 def load_data():
     if os.path.exists(EXCEL_FILE):
         return pd.read_excel(EXCEL_FILE)
     else:
         return pd.DataFrame(columns=["Hostel", "Room", "Occupant", "Contact", "Fee Paid"])
 
+# Save updated data to Excel
 def save_data(df):
     df.to_excel(EXCEL_FILE, index=False)
 
-# Initialize session state
+# Initialize session state variables
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
@@ -30,36 +31,34 @@ if "df" not in st.session_state:
 
 # Login screen
 def login():
-    st.title("Bot")
-    username = st.text_input("Username")
-    password = st.text_input("Password", type="password")
+    st.title("🔐 Bot Login")
+    username = st.text_input("Username").strip()
+    password = st.text_input("Password", type="password").strip()
 
     if st.button("Login"):
         if username in USERS and USERS[username] == password:
             st.session_state.logged_in = True
             st.success("✅ Login successful!")
-            st.experimental_rerun()
+            st.rerun()
         else:
             st.error("❌ Invalid username or password")
 
-# Logout
+# Logout function
 def logout():
     st.session_state.logged_in = False
-    st.experimental_rerun()
+    st.rerun()
 
-# Main app interface
+# Main app logic
 def hostel_manager_app():
-    st.title("Bot")
-    st.sidebar.success("Logged in")
+    st.title("🏨 Hostel Manager")
+    st.sidebar.success("✅ Logged in")
     st.sidebar.button("Logout", on_click=logout)
 
     menu = st.sidebar.radio("Menu", ["Add Hostel", "Add Room", "Add Bed", "View All"])
 
-    # Track dynamic hostel/room lists in session
+    # Initialize in-memory hostel structure from Excel if not already set
     if "hostels" not in st.session_state:
         st.session_state.hostels = {}
-
-        # Populate from existing Excel data
         for _, row in st.session_state.df.iterrows():
             h = row["Hostel"]
             r = row["Room"]
@@ -69,7 +68,7 @@ def hostel_manager_app():
                 "fee_paid": row["Fee Paid"]
             })
 
-    # Add hostel
+    # Add Hostel
     if menu == "Add Hostel":
         st.header("➕ Add Hostel")
         hostel_name = st.text_input("Hostel Name")
@@ -83,7 +82,7 @@ def hostel_manager_app():
             else:
                 st.error("❌ Please enter a hostel name.")
 
-    # Add room
+    # Add Room
     elif menu == "Add Room":
         st.header("🛏️ Add Room to Hostel")
         hostel_list = list(st.session_state.hostels.keys())
@@ -102,9 +101,9 @@ def hostel_manager_app():
         else:
             st.info("ℹ️ No hostels available. Add a hostel first.")
 
-    # Add bed
+    # Add Bed (Occupant)
     elif menu == "Add Bed":
-        st.header("🛌 Add Bed to Room")
+        st.header("🛌 Add Bed (Occupant) to Room")
         hostel_list = list(st.session_state.hostels.keys())
         if hostel_list:
             hostel = st.selectbox("Select Hostel", hostel_list)
@@ -117,7 +116,6 @@ def hostel_manager_app():
 
                 if st.button("Add Bed"):
                     if occupant_name:
-                        # Add to session memory
                         person = {
                             "name": occupant_name,
                             "contact": contact,
@@ -125,7 +123,7 @@ def hostel_manager_app():
                         }
                         st.session_state.hostels[hostel][room].append(person)
 
-                        # Add to Excel data
+                        # Add to Excel
                         new_row = {
                             "Hostel": hostel,
                             "Room": room,
@@ -136,23 +134,23 @@ def hostel_manager_app():
                         st.session_state.df = pd.concat([st.session_state.df, pd.DataFrame([new_row])], ignore_index=True)
                         save_data(st.session_state.df)
 
-                        st.success(f"✅ Added '{occupant_name}' to {room} in {hostel}")
+                        st.success(f"✅ Occupant '{occupant_name}' added to Room {room} in {hostel}.")
                     else:
-                        st.error("❌ Enter occupant name.")
+                        st.error("❌ Please enter occupant name.")
             else:
-                st.info("ℹ️ No rooms in selected hostel. Add a room first.")
+                st.info("ℹ️ No rooms found in selected hostel. Add a room first.")
         else:
-            st.info("ℹ️ No hostels available. Add a hostel first.")
+            st.info("ℹ️ No hostels found. Add a hostel first.")
 
-    # View all
+    # View All Data
     elif menu == "View All":
         st.header("📋 View All Hostel Data")
         if not st.session_state.df.empty:
             st.dataframe(st.session_state.df)
         else:
-            st.info("No data found.")
+            st.info("No data available yet.")
 
-# Entry point
+# Run the app
 if st.session_state.logged_in:
     hostel_manager_app()
 else:
